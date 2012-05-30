@@ -88,13 +88,13 @@ jQuery._farbtastic = function (container, callback) {
   /**
    * Change color with HTML syntax #123456
    */
-  fb.setColor = function (color) {
+  fb.setColor = function (color, skipCallbacks) {
     var unpack = fb.unpack(color);
     if (fb.color != color && unpack) {
       fb.color = color;
       fb.rgb = unpack;
       fb.hsl = fb.RGBToHSL(fb.rgb);
-      fb.updateDisplay();
+      fb.updateDisplay(skipCallbacks);
     }
     return this;
   }
@@ -102,11 +102,11 @@ jQuery._farbtastic = function (container, callback) {
   /**
    * Change color with HSL triplet [0..1, 0..1, 0..1]
    */
-  fb.setHSL = function (hsl) {
+  fb.setHSL = function (hsl, skipCallbacks) {
     fb.hsl = hsl;
     fb.rgb = fb.HSLToRGB(hsl);
     fb.color = fb.pack(fb.rgb);
-    fb.updateDisplay();
+    fb.updateDisplay(skipCallbacks);
     return this;
   }
 
@@ -220,7 +220,7 @@ jQuery._farbtastic = function (container, callback) {
   /**
    * Update the markers and styles
    */
-  fb.updateDisplay = function () {
+  fb.updateDisplay = function (skipCallbacks) {
     // Markers
     var angle = fb.hsl[0] * 6.28;
     $('.h-marker', e).css({
@@ -236,23 +236,25 @@ jQuery._farbtastic = function (container, callback) {
     // Saturation/Luminance gradient
     $('.color', e).css('backgroundColor', fb.pack(fb.HSLToRGB([fb.hsl[0], 1, 0.5])));
 
-    // Linked elements or callback
-    if (typeof fb.callback == 'object') {
-      // Set background/foreground color
-      $(fb.callback).css({
-        backgroundColor: fb.color,
-        color: fb.hsl[2] > 0.5 ? '#000' : '#fff'
-      });
+    if (!skipCallbacks) {
+      // Linked elements or callback
+      if (typeof fb.callback == 'object') {
+        // Set background/foreground color
+        $(fb.callback).css({
+          backgroundColor: fb.color,
+          color: fb.hsl[2] > 0.5 ? '#000' : '#fff'
+        });
 
-      // Change linked value
-      $(fb.callback).each(function() {
-        if (this.value && this.value != fb.color) {
-          this.value = fb.color;
-        }
-      });
-    }
-    else if (typeof fb.callback == 'function') {
-      fb.callback.call(fb, fb.color);
+        // Change linked value
+        $(fb.callback).each(function() {
+          if (this.value && this.value != fb.color) {
+            this.value = fb.color;
+          }
+        });
+      }
+      else if (typeof fb.callback == 'function') {
+        fb.callback.call(fb, fb.color);
+      }
     }
   }
 
